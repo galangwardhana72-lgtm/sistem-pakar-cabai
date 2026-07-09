@@ -2,22 +2,31 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image
 import numpy as np
+import os
 
 # 1. Konfigurasi Halaman
 st.set_page_config(
-    page_title="Pakar Cabai AI", 
+    page_title="Pakar Cabai AI",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # 2. Memuat Model
+@st.cache_resource
+def load_model():
+    model_path = os.path.join(os.path.dirname(__file__), "model_cabai.keras")
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model tidak ditemukan di: {model_path}")
+
+    return tf.keras.models.load_model(model_path)
+
 try:
     model = load_model()
+    st.success("✅ Model berhasil dimuat.")
 except Exception as e:
     st.exception(e)
     model = None
-
-class_names = ['Curl', 'Healthy', 'Spot', 'Whitefly', 'Yellowfish']
 
 # Kamus Data Penyakit untuk ditampilkan langsung di layar analisis
 penyakit_info = {
