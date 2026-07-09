@@ -16,11 +16,18 @@ st.set_page_config(
 def load_model():
     model_path = os.path.join(os.path.dirname(__file__), "model_cabai.h5")
 
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model tidak ditemukan di: {model_path}")
+    if not os.path.isfile(model_path):
+        raise FileNotFoundError(
+            f"File model tidak ditemukan.\nPath: {model_path}"
+        )
 
-    # compile=False agar hanya digunakan untuk inferensi
-    return tf.keras.models.load_model(model_path, compile=False)
+    model = tf.keras.models.load_model(
+        model_path,
+        compile=False
+    )
+
+    return model
+
 
 try:
     model = load_model()
@@ -29,6 +36,14 @@ except Exception as e:
     st.exception(e)
     model = None
 
+# Nama kelas sesuai urutan training model
+class_names = [
+    "Curl",
+    "Healthy",
+    "Spot",
+    "Whitefly",
+    "Yellowfish"
+]
 # Kamus Data Penyakit untuk ditampilkan langsung di layar analisis
 penyakit_info = {
     'Curl': {
