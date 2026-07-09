@@ -14,12 +14,13 @@ st.set_page_config(
 # 2. Memuat Model
 @st.cache_resource
 def load_model():
-    model_path = os.path.join(os.path.dirname(__file__), "model_cabai.keras")
+    model_path = os.path.join(os.path.dirname(__file__), "model_cabai.h5")
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model tidak ditemukan di: {model_path}")
 
-    return tf.keras.models.load_model(model_path)
+    # compile=False agar hanya digunakan untuk inferensi
+    return tf.keras.models.load_model(model_path, compile=False)
 
 try:
     model = load_model()
