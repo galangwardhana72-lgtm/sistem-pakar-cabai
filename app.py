@@ -4,27 +4,74 @@ from PIL import Image
 import numpy as np
 import os
 
+# ==========================================================
 # 1. Konfigurasi Halaman
+# ==========================================================
 st.set_page_config(
     page_title="Pakar Cabai AI",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# 2. Memuat Model
+# ==========================================================
+# 2. Memuat Model (Arsitektur + Weights)
+# ==========================================================
 @st.cache_resource
 def load_model():
-    model_path = os.path.join(os.path.dirname(__file__), "model_cabai.h5")
 
-    if not os.path.isfile(model_path):
+    # Membuat arsitektur CNN (HARUS sama seperti saat training)
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(128, 128, 3)),
+
+        tf.keras.layers.Conv2D(
+            32,
+            (3, 3),
+            activation="relu"
+        ),
+        tf.keras.layers.MaxPooling2D(2, 2),
+
+        tf.keras.layers.Conv2D(
+            64,
+            (3, 3),
+            activation="relu"
+        ),
+        tf.keras.layers.MaxPooling2D(2, 2),
+
+        tf.keras.layers.Conv2D(
+            128,
+            (3, 3),
+            activation="relu"
+        ),
+        tf.keras.layers.MaxPooling2D(2, 2),
+
+        tf.keras.layers.Flatten(),
+
+        tf.keras.layers.Dense(
+            128,
+            activation="relu"
+        ),
+
+        tf.keras.layers.Dropout(0.5),
+
+        tf.keras.layers.Dense(
+            5,
+            activation="softmax"
+        )
+    ])
+
+    # Lokasi file weights
+    weights_path = os.path.join(
+        os.path.dirname(__file__),
+        "model.weights.h5"
+    )
+
+    if not os.path.isfile(weights_path):
         raise FileNotFoundError(
-            f"File model tidak ditemukan.\nPath: {model_path}"
+            f"File weights tidak ditemukan:\n{weights_path}"
         )
 
-    model = tf.keras.models.load_model(
-        model_path,
-        compile=False
-    )
+    # Memuat bobot model
+    model.load_weights(weights_path)
 
     return model
 
@@ -34,9 +81,11 @@ try:
     st.success("✅ Model berhasil dimuat.")
 except Exception as e:
     st.exception(e)
-    model = None
+    st.stop()
 
-# Nama kelas sesuai urutan training model
+# ==========================================================
+# Nama Kelas
+# ==========================================================
 class_names = [
     "Curl",
     "Healthy",
