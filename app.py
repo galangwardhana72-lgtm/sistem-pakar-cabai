@@ -14,7 +14,7 @@ st.set_page_config(
 try:
     model = load_model()
 except Exception as e:
-    st.error(f"Model gagal dimuat: {e}")
+    st.exception(e)
     model = None
 
 class_names = ['Curl', 'Healthy', 'Spot', 'Whitefly', 'Yellowfish']
