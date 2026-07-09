@@ -11,14 +11,10 @@ st.set_page_config(
 )
 
 # 2. Memuat Model
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model('model_cabai.keras')
-
 try:
     model = load_model()
 except Exception as e:
-    st.error("Model gagal dimuat. Pastikan file model_cabai.keras tersedia.")
+    st.error(f"Model gagal dimuat: {e}")
     model = None
 
 class_names = ['Curl', 'Healthy', 'Spot', 'Whitefly', 'Yellowfish']
