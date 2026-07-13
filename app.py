@@ -9,204 +9,194 @@ import os
 # ==========================================================
 st.set_page_config(
     page_title="Pakar Cabai AI",
+    page_icon="🌶️",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# ==========================================================
+# 2. Injeksi CSS Kustom (Tema Modern Dark-Agri)
+# ==========================================================
 st.markdown("""
     <style>
-    /* Mengimpor font modern dari Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    /* Import font Poppins yang lebih modern dan membulat */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
 
-    /* Menerapkan font ke seluruh halaman */
+    /* Terapkan font ke seluruh aplikasi */
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Poppins', sans-serif;
     }
 
-    /* Menyembunyikan elemen bawaan Streamlit agar terlihat seperti aplikasi mandiri */
+    /* Menyembunyikan elemen bawaan Streamlit (header, footer, menu) */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Mengubah warna teks judul menjadi hijau agrikultur gelap */
+    /* Styling Judul - Hijau cerah agar kontras di dark mode */
     h1, h2, h3 {
-        color: #2E7D32 !important;
-        font-weight: 800;
+        color: #4ade80 !important; 
+        font-weight: 800 !important;
+        letter-spacing: -0.5px;
     }
 
-    /* Mempercantik area unggah file */
+    /* Teks paragraf dan subjudul */
+    .st-emotion-cache-10trblm {
+        color: #cbd5e1;
+        font-weight: 300;
+    }
+
+    /* Styling Area Upload (Drag & Drop) */
     [data-testid="stFileUploader"] {
-        border: 2px dashed #4CAF50;
-        border-radius: 12px;
-        background-color: #F6FFF6;
-        padding: 15px;
+        border: 2px dashed #4ade80;
+        border-radius: 16px;
+        background-color: rgba(74, 222, 128, 0.05); /* Hijau transparan */
+        padding: 20px;
         transition: all 0.3s ease;
     }
     
     [data-testid="stFileUploader"]:hover {
-        border-color: #2E7D32;
-        background-color: #E8F5E9;
+        border-color: #22c55e;
+        background-color: rgba(74, 222, 128, 0.1);
     }
 
-    /* Memperhalus tampilan gambar (sudut melengkung dan bayangan) */
+    /* Mengubah warna teks di dalam kotak upload agar terbaca */
+    .st-emotion-cache-9ycgxx {
+        color: #f8fafc !important;
+    }
+
+    /* Styling Kotak Alert / Info */
+    div[data-testid="stAlert"] {
+        border-radius: 12px;
+        border: none;
+        background-color: rgba(30, 41, 59, 0.7);
+        border-left: 4px solid #3b82f6;
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Styling Gambar Hasil Output */
     [data-testid="stImage"] img {
         border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Modifikasi kotak informasi/alert */
-    div[data-testid="stAlert"] {
-        border-radius: 10px;
-        border-left: 5px solid;
+    /* Styling Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 20px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 8px;
+        color: #94a3b8;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #4ade80 !important;
+        background-color: rgba(74, 222, 128, 0.1);
+    }
+    
+    /* Garis pemisah */
+    hr {
+        border-color: rgba(255, 255, 255, 0.1);
     }
     </style>
 """, unsafe_allow_html=True)
-# CSS kustom untuk memperbesar tampilan kamera di mobile
-st.markdown("""
-    <style>
-    [data-testid="stCameraInput"] {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    [data-testid="stCameraInput"] video {
-        width: 100% !important;
-        height: auto !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
+
 # ==========================================================
-# 2. Memuat Model (Arsitektur + Weights)
+# 3. Memuat Model
 # ==========================================================
 @st.cache_resource
 def load_model():
-
-    # Membuat arsitektur CNN (HARUS sama seperti saat training)
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(128, 128, 3)),
-
-        tf.keras.layers.Conv2D(
-            32,
-            (3, 3),
-            activation="relu"
-        ),
+        tf.keras.layers.Conv2D(32, (3, 3), activation="relu"),
         tf.keras.layers.MaxPooling2D(2, 2),
-
-        tf.keras.layers.Conv2D(
-            64,
-            (3, 3),
-            activation="relu"
-        ),
+        tf.keras.layers.Conv2D(64, (3, 3), activation="relu"),
         tf.keras.layers.MaxPooling2D(2, 2),
-
-        tf.keras.layers.Conv2D(
-            128,
-            (3, 3),
-            activation="relu"
-        ),
+        tf.keras.layers.Conv2D(128, (3, 3), activation="relu"),
         tf.keras.layers.MaxPooling2D(2, 2),
-
         tf.keras.layers.Flatten(),
-
-        tf.keras.layers.Dense(
-            128,
-            activation="relu"
-        ),
-
+        tf.keras.layers.Dense(128, activation="relu"),
         tf.keras.layers.Dropout(0.5),
-
-        tf.keras.layers.Dense(
-            5,
-            activation="softmax"
-        )
+        tf.keras.layers.Dense(5, activation="softmax")
     ])
 
-    # Lokasi file weights
-    weights_path = os.path.join(
-        os.path.dirname(__file__),
-        "model.weights.h5"
-    )
+    weights_path = os.path.join(os.path.dirname(__file__), "model.weights.h5")
 
     if not os.path.isfile(weights_path):
-        raise FileNotFoundError(
-            f"File weights tidak ditemukan:\n{weights_path}"
-        )
+        raise FileNotFoundError(f"File weights tidak ditemukan:\n{weights_path}")
 
-    # Memuat bobot model
     model.load_weights(weights_path)
-
     return model
-
 
 try:
     model = load_model()
-    # st.success("✅ Model berhasil dimuat.")  <-- Baris ini dihapus atau diberi tanda #
+    # Notifikasi sukses sengaja dihilangkan agar UI lebih bersih
 except Exception as e:
     st.exception(e)
     st.stop()
 
 # ==========================================================
-# Nama Kelas
+# 4. Data Penyakit & Kelas
 # ==========================================================
-class_names = [
-    "Curl",
-    "Healthy",
-    "Spot",
-    "Whitefly",
-    "Yellowfish"
-]
-# Kamus Data Penyakit untuk ditampilkan langsung di layar analisis
+class_names = ["Curl", "Healthy", "Spot", "Whitefly", "Yellowfish"]
+
 penyakit_info = {
     'Curl': {
-        'penyebab': 'Serangan hama serangga penghisap cairan daun seperti Thrips, Tungau, atau Aphids.',
-        'penanganan': 'Cabut dan musnahkan tanaman yang sudah terinfeksi parah. Jaga sanitasi kebun dari gulma, dan aplikasikan insektisida berbahan aktif Abamektin.'
+        'penyebab': 'Serangan hama serangga penghisap cairan daun (Thrips, Tungau, Aphids).',
+        'penanganan': 'Cabut tanaman yang terinfeksi parah. Jaga sanitasi kebun dan aplikasikan insektisida berbahan aktif Abamektin.'
     },
     'Spot': {
-        'penyebab': 'Infeksi patogen jamur Cercospora capsici, biasanya dipicu oleh kondisi kebun yang terlalu lembab.',
-        'penanganan': 'Segera petik dan buang daun yang terinfeksi. Atur jarak tanam agar sirkulasi udara lancar, dan semprotkan fungisida berbahan aktif Mankozeb.'
+        'penyebab': 'Infeksi patogen jamur Cercospora capsici, dipicu oleh kelembaban tinggi.',
+        'penanganan': 'Petik daun terinfeksi. Atur jarak tanam untuk sirkulasi udara, semprotkan fungisida berbahan aktif Mankozeb.'
     },
     'Whitefly': {
-        'penyebab': 'Hama serangga kecil Kutu Kebul (Bemisia tabaci) yang berkoloni di bagian bawah daun.',
-        'penanganan': 'Pasang perangkap lekat kuning (Yellow Sticky Trap) di area kebun dan lakukan penyemprotan insektisida nabati secara berkala.'
+        'penyebab': 'Hama Kutu Kebul (Bemisia tabaci) yang berkoloni di bagian bawah daun.',
+        'penanganan': 'Pasang perangkap lekat kuning (Yellow Sticky Trap) dan semprotkan insektisida nabati berkala.'
     },
     'Yellowfish': {
-        'penyebab': 'Infeksi Virus Kuning (Gemini) yang ditularkan melalui gigitan hama Kutu Kebul.',
-        'penanganan': 'Tidak ada obat kuratif. Tanaman harus segera dicabut dan dibakar agar tidak menular. Pengendalian difokuskan pada pemberantasan vektor kutu kebul.'
+        'penyebab': 'Infeksi Virus Kuning (Gemini) yang ditularkan melalui gigitan Kutu Kebul.',
+        'penanganan': 'Tanaman harus dicabut dan dibakar. Fokus pada pemberantasan vektor kutu kebul.'
     }
 }
 
-# 3. Header Website
-st.markdown("<h1 style='text-align: center;'>Sistem Pakar AI: Deteksi Penyakit Daun Cabai</h1>", unsafe_allow_html=True)
+# ==========================================================
+# 5. Header Website
+# ==========================================================
+st.markdown("<h1 style='text-align: center; margin-bottom: 0;'>🌶️ Pakar AI: Daun Cabai</h1>", unsafe_allow_html=True)
 st.markdown("""
-<div style='text-align: center; font-size: 1.1em; margin-bottom: 30px;'>
-Aplikasi cerdas berbasis Convolutional Neural Network (CNN) untuk mendeteksi dini penyakit pada tanaman cabai. <br>
-Kenali penyakitnya, pahami penanganannya, dan selamatkan panen Anda.
+<div style='text-align: center; font-size: 1.1em; color: #94a3b8; margin-bottom: 40px;'>
+Sistem Deteksi Dini Penyakit Tanaman Cabai Berbasis Deep Learning<br>
+Unggah foto daun dan biarkan AI mendiagnosis kondisinya.
 </div>
 """, unsafe_allow_html=True)
-st.markdown("---")
 
-# 4. Membuat Tabs untuk Navigasi UI
-tab1, tab2 = st.tabs(["Deteksi Cerdas", "Buku Saku Penyakit"])
+# ==========================================================
+# 6. Navigasi & Layout Utama
+# ==========================================================
+tab1, tab2 = st.tabs(["🔍 Deteksi Cerdas", "📖 Buku Saku Penyakit"])
 
-# ==========================================
-# TAB 1: DETEKSI AI
-# ==========================================
 with tab1:
-    col1, col2 = st.columns([1, 1])
+    col1, col_space, col2 = st.columns([1, 0.1, 1])
     
     with col1:
-        st.subheader("Modul Input Gambar")
-        st.info("Pilih tombol di bawah. Jika Anda menggunakan HP, pilih opsi 'Kamera' untuk memotret langsung dengan pencahayaan merata.")
+        st.markdown("### 📷 Modul Input")
+        st.info("💡 **Tips:** Pastikan foto fokus pada satu helai daun dengan pencahayaan terang. Jika menggunakan HP, ketuk area di bawah dan pilih 'Kamera'.")
         
         final_image = st.file_uploader("Unggah atau potret daun cabai", type=["jpg", "jpeg", "png"])
         
     with col2:
-        st.subheader("Panel Analisis")
+        st.markdown("### 🔬 Panel Analisis")
         
         if final_image is not None:
             image = Image.open(final_image)
-            st.image(image, caption="Citra Input", use_container_width=True)
+            st.image(image, caption="Citra Input (Telah diproses)", use_container_width=True)
             
             if model is not None:
-                with st.spinner("Memproses klasifikasi citra..."):
+                with st.spinner("🧠 AI sedang menganalisis pola daun..."):
                     # Preprocessing
                     image_resized = image.resize((128, 128))
                     img_array = np.array(image_resized)
@@ -223,97 +213,58 @@ with tab1:
                     predicted_class = class_names[class_index]
                     confidence = predictions[0][class_index] * 100
                     
-                    # Filter Penolakan Gambar Bukan Daun
+                    st.markdown("---")
+                    
+                    # Filter Penolakan Gambar
                     if confidence < 70.0:
-                        st.warning("Kepercayaan model rendah. Pastikan objek adalah daun cabai yang fokus.")
+                        st.warning("⚠️ **Akurasi Rendah:** AI tidak yakin ini adalah daun cabai atau gambar terlalu buram. Mohon ambil ulang foto.")
                     else:
                         if predicted_class == "Healthy":
-                            st.success(f"Status: Daun Sehat (Tingkat Akurasi: {confidence:.2f}%)")
-                            st.info("Kondisi tanaman sangat baik. Lanjutkan aplikasi nutrisi berimbang (NPK) dan pemantauan rutin.")
+                            st.success(f"🌱 **Status: DAUN SEHAT** (Akurasi: {confidence:.1f}%)")
+                            st.info("Kondisi tanaman optimal. Lanjutkan perawatan rutin dan pemberian nutrisi berimbang.")
                         else:
-                            st.error(f"Terdeteksi: {predicted_class} (Tingkat Akurasi: {confidence:.2f}%)")
+                            st.error(f"🦠 **Terdeteksi: {predicted_class.upper()}** (Akurasi: {confidence:.1f}%)")
                             
-                            # Menampilkan deskripsi penyebab dan penanganan
                             info = penyakit_info[predicted_class]
-                            st.warning(f"Disebabkan oleh: {info['penyebab']}")
-                            st.info(f"Cara Penanganan: {info['penanganan']}")
+                            st.warning(f"**🔍 Penyebab:**\n{info['penyebab']}")
+                            st.info(f"**🛠️ Penanganan:**\n{info['penanganan']}")
         else:
-            st.write("Menunggu input gambar untuk memulai analisis...")
-# ==========================================
-# TAB 2: INFORMASI PENYAKIT & PENANGANAN
-# ==========================================
+            st.markdown("""
+            <div style='text-align: center; padding: 50px; background-color: rgba(255,255,255,0.02); border-radius: 12px;'>
+                <h4 style='color: #64748b;'>Menunggu Input Gambar...</h4>
+                <p style='color: #475569;'>Hasil analisis AI akan muncul di panel ini.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+# ==========================================================
+# TAB 2: BUKU SAKU
+# ==========================================================
 with tab2:
-    st.header("Buku Saku Pengendalian Hama Terpadu")
-    st.write("Prosedur penanganan detail berdasarkan pedoman agrikultur standar:")
+    st.markdown("### 📚 Ensiklopedia Penyakit Cabai")
+    st.write("Pelajari karakteristik visual dan langkah mitigasi untuk berbagai ancaman pada tanaman cabai Anda.")
     
-    with st.expander("Daun Keriting (Curl)"):
-        try:
-            st.image("Curl.jpg", caption="Contoh Daun Keriting (Curl)", width=400)
-        except FileNotFoundError:
-            st.info("Gambar 'Curl.jpg' belum tersedia di folder.")
-            
-        st.write(f"""
-        **Disebabkan oleh:** {penyakit_info['Curl']['penyebab']}
-        
-        **Gejala:** Helai daun melengkung ke atas atau ke bawah, menebal, mengerut, dan pertumbuhan vegetatif terhambat.
-        
-        **Cara Penanganan:** {penyakit_info['Curl']['penanganan']}
-        """)
+    # Disederhanakan menggunakan perulangan agar kode lebih rapi
+    penyakit_list = ["Curl", "Spot", "Whitefly", "Yellowfish"]
+    
+    for peny in penyakit_list:
+        with st.expander(f"📌 Penyakit: {peny}"):
+            try:
+                st.image(f"{peny}.jpg", caption=f"Contoh Visual {peny}", width=400)
+            except FileNotFoundError:
+                st.write(f"*(Gambar {peny}.jpg belum tersedia di direktori)*")
+                
+            st.markdown(f"**🔬 Penyebab:** {penyakit_info[peny]['penyebab']}")
+            st.markdown(f"**🛠️ Tindakan:** {penyakit_info[peny]['penanganan']}")
 
-    with st.expander("Bercak Daun (Spot / Cercospora)"):
-        try:
-            st.image("Spot.jpg", caption="Contoh Bercak Daun (Spot)", width=400)
-        except FileNotFoundError:
-            st.info("Gambar 'Spot.jpg' belum tersedia di folder.")
-            
-        st.write(f"""
-        **Disebabkan oleh:** {penyakit_info['Spot']['penyebab']}
-        
-        **Gejala:** Terdapat lesi sirkular dengan pusat abu-abu dan tepi coklat tua. Daun menguning klorosis dan berpotensi absisi (gugur).
-        
-        **Cara Penanganan:** {penyakit_info['Spot']['penanganan']}
-        """)
-
-    with st.expander("Kutu Kebul (Whitefly)"):
-        try:
-            st.image("Whitefly.jpg", caption="Contoh Kutu Kebul (Whitefly)", width=400)
-        except FileNotFoundError:
-            st.info("Gambar 'Whitefly.jpg' belum tersedia di folder.")
-            
-        st.write(f"""
-        **Disebabkan oleh:** {penyakit_info['Whitefly']['penyebab']}
-        
-        **Gejala:** Koloni serangga putih di abaksial (bawah) daun. Ekskresi embun madu memicu pertumbuhan kapang jelaga.
-        
-        **Cara Penanganan:** {penyakit_info['Whitefly']['penanganan']}
-        """)
-        
-    with st.expander("Daun Kuning (Yellowfish / Virus Gemini)"):
-        try:
-            st.image("Yellowfish.jpg", caption="Contoh Daun Kuning (Yellowfish)", width=400)
-        except FileNotFoundError:
-            st.info("Gambar 'Yellowfish.jpg' belum tersedia di folder.")
-            
-        st.write(f"""
-        **Disebabkan oleh:** {penyakit_info['Yellowfish']['penyebab']}
-        
-        **Gejala:** Penebalan tulang daun dengan klorosis kuning mencolok. Tanaman kerdil dan gagal berproduksi.
-        
-        **Cara Penanganan:** {penyakit_info['Yellowfish']['penanganan']}
-        """)
-        
-    with st.expander("Daun Sehat (Healthy)"):
+    with st.expander("🌱 Tanaman Sehat (Healthy)"):
         try:
             st.image("Healthy.jpg", caption="Contoh Daun Sehat", width=400)
         except FileNotFoundError:
-            st.info("Gambar 'Healthy.jpg' belum tersedia di folder.")
-            
-        st.write("""
-        **Karakteristik Visual:** Klorofil merata, morfologi daun normal, tidak terdapat lesi patogen.
-        
-        **Cara Pemeliharaan:** Lanjutkan aplikasi nutrisi berimbang (NPK) dan monitoring berkala.
-        """)
+            st.write("*(Gambar Healthy.jpg belum tersedia di direktori)*")
+        st.markdown("**Ciri-ciri:** Klorofil merata, daun tidak menggulung, dan bebas dari lesi/bercak.")
 
-# Footer
+# ==========================================================
+# 7. Footer
+# ==========================================================
 st.markdown("---")
-st.markdown("<div style='text-align: center; font-size: 0.85em;'>2026 | Sistem Klasifikasi Penyakit Daun Cabai | Dibangun dengan Streamlit & TensorFlow</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; font-size: 0.85em; color: #64748b;'>© 2026 | Sistem Klasifikasi Penyakit Daun Cabai | Dibangun dengan Streamlit & TensorFlow</div>", unsafe_allow_html=True)
