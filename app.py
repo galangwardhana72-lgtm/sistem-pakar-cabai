@@ -146,34 +146,26 @@ with tab1:
     
     with col1:
         st.subheader("Modul Input Gambar")
-        st.info("Pastikan foto fokus pada satu helai daun cabai dengan pencahayaan yang merata.")
+        st.info("Pilih tombol di bawah. Jika Anda menggunakan HP, pilih opsi 'Kamera' untuk memotret langsung dengan pencahayaan merata.")
         
-        input_method = st.radio("Pilih metode input:", ("Unggah Dokumen", "Aktivasi Kamera"))
-        
-        final_image = None
-        
-        if input_method == "Aktivasi Kamera":
-            camera_photo = st.camera_input("Ambil foto langsung")
-            if camera_photo:
-                final_image = camera_photo
-        else:
-            uploaded_file = st.file_uploader("Seret dan letakkan file gambar di sini", type=["jpg", "jpeg", "png"])
-            if uploaded_file:
-                final_image = uploaded_file
+        final_image = st.file_uploader("Unggah atau potret daun cabai", type=["jpg", "jpeg", "png"])
         
     with col2:
         st.subheader("Panel Analisis")
+        
         if final_image is not None:
             image = Image.open(final_image)
-            st.image(image, caption='Citra Input', use_container_width=True)
+            st.image(image, caption="Citra Input", use_container_width=True)
             
             if model is not None:
                 with st.spinner("Memproses klasifikasi citra..."):
                     # Preprocessing
                     image_resized = image.resize((128, 128))
                     img_array = np.array(image_resized)
+                    
                     if img_array.shape[-1] == 4:
                         img_array = img_array[..., :3]
+                        
                     img_array = img_array / 255.0
                     img_array = np.expand_dims(img_array, axis=0)
                     
@@ -187,19 +179,18 @@ with tab1:
                     if confidence < 70.0:
                         st.warning("Kepercayaan model rendah. Pastikan objek adalah daun cabai yang fokus.")
                     else:
-                        if predicted_class == 'Healthy':
+                        if predicted_class == "Healthy":
                             st.success(f"Status: Daun Sehat (Tingkat Akurasi: {confidence:.2f}%)")
                             st.info("Kondisi tanaman sangat baik. Lanjutkan aplikasi nutrisi berimbang (NPK) dan pemantauan rutin.")
                         else:
                             st.error(f"Terdeteksi: {predicted_class} (Tingkat Akurasi: {confidence:.2f}%)")
                             
-                            # Menampilkan deskripsi penyebab dan penanganan secara dinamis
+                            # Menampilkan deskripsi penyebab dan penanganan
                             info = penyakit_info[predicted_class]
-                            st.warning(f"**Disebabkan oleh:** {info['penyebab']}")
-                            st.info(f"**Cara Penanganan:** {info['penanganan']}")
+                            st.warning(f"Disebabkan oleh: {info['penyebab']}")
+                            st.info(f"Cara Penanganan: {info['penanganan']}")
         else:
             st.write("Menunggu input gambar untuk memulai analisis...")
-
 # ==========================================
 # TAB 2: INFORMASI PENYAKIT & PENANGANAN
 # ==========================================
