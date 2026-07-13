@@ -148,6 +148,21 @@ with tab1:
             uploaded_file = st.file_uploader("Seret dan letakkan file gambar di sini", type=["jpg", "jpeg", "png"])
             if uploaded_file:
                 final_image = uploaded_file
+    # CSS untuk memperbesar tampilan kamera di mobile
+st.markdown("""
+    <style>
+    /* Menargetkan container camera_input agar lebih responsif */
+    [data-testid="stCameraInput"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    /* Memastikan video/frame kamera memenuhi lebar kolom */
+    [data-testid="stCameraInput"] video {
+        width: 100% !important;
+        height: auto !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
         
     with col2:
         st.subheader("Panel Analisis")
