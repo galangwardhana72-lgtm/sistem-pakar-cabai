@@ -12,6 +12,54 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+st.markdown("""
+    <style>
+    /* Mengimpor font modern dari Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+    /* Menerapkan font ke seluruh halaman */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Menyembunyikan elemen bawaan Streamlit agar terlihat seperti aplikasi mandiri */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+
+    /* Mengubah warna teks judul menjadi hijau agrikultur gelap */
+    h1, h2, h3 {
+        color: #2E7D32 !important;
+        font-weight: 800;
+    }
+
+    /* Mempercantik area unggah file */
+    [data-testid="stFileUploader"] {
+        border: 2px dashed #4CAF50;
+        border-radius: 12px;
+        background-color: #F6FFF6;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #2E7D32;
+        background-color: #E8F5E9;
+    }
+
+    /* Memperhalus tampilan gambar (sudut melengkung dan bayangan) */
+    [data-testid="stImage"] img {
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Modifikasi kotak informasi/alert */
+    div[data-testid="stAlert"] {
+        border-radius: 10px;
+        border-left: 5px solid;
+    }
+    </style>
+""", unsafe_allow_html=True)
 # CSS kustom untuk memperbesar tampilan kamera di mobile
 st.markdown("""
     <style>
