@@ -90,7 +90,7 @@ def load_model():
 
 try:
     model = load_model()
-    st.success("✅ Model berhasil dimuat.")
+    # st.success("✅ Model berhasil dimuat.")  <-- Baris ini dihapus atau diberi tanda #
 except Exception as e:
     st.exception(e)
     st.stop()
